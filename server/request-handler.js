@@ -13,6 +13,9 @@ this file and include it in basic-server.js so that it actually works.
 **************************************************************/
 
 var request = require('request');
+var url = require('url');
+
+var data = {results: []};
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -31,30 +34,46 @@ var requestHandler = function(request, response) {
   // console.logs in your code.
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
-  // The outgoing status.
+  
   var statusCode = 200;
-
-  // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
-
-  // Tell the client we are sending them plain text.
-  //
-  // You will need to change this if you are sending something
-  // other than plain text, like JSON or HTML.
   headers['Content-Type'] = 'text/plain';
 
-  // .writeHead() writes to the request line and headers of the response,
-  // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
+  // response.writeHead(statusCode, headers);
 
-  // Make sure to always call response.end() - Node may not send
-  // anything back to the client until you do. The string you pass to
-  // response.end() will be the body of the response - i.e. what shows
-  // up in the browser.
-  //
-  // Calling .end "flushes" the response's internal buffer, forcing
-  // node to actually send all the data over to the client.
-  response.end('Hello, World!');
+  // GET Request Handlers 
+  if (url.parse(request.url).pathname === '/classes/messages' && request.method === 'GET') { 
+ 
+
+    // On success send a stringified data 
+    response.writeHead(statusCode ,{'Content-Type': 'application/json'});
+    response.end(JSON.stringify(data));
+  } else if (url.parse(request.url).pathname === '/classes/messages' && request.method === 'POST'){
+    console.log('PATHH' + url.parse(request.url).pathname);
+      let body = '';
+      request.on('error',(err)=> {
+        console.log("Big ol Error");
+      })
+      request.on('data', (chunk) => { 
+        body = body.concat(chunk);
+        console.log('THIS IS OUR CHUNK FROM POST' + chunk)
+        console.log('THIS IS OUR BODY!!!!!!!!!:' + body);
+
+        
+      })
+      request.on('end', () => { 
+        response.writeHead(201, {'Content-Type': 'application/json'});
+        response.end(JSON.stringify(body));
+
+      });
+     
+    } else {
+
+
+    response.writeHead(404, {'Content-Type': 'application/json'});
+    response.end('Hello, World!');
+    }
+    
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -73,5 +92,5 @@ var defaultCorsHeaders = {
   'access-control-max-age': 10 // Seconds.
 };
 
-module.exports.requestHandler; 
+module.exports.requestHandler = requestHandler; 
 
