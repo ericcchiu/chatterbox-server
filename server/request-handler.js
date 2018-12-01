@@ -12,10 +12,10 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 
-var request = require('request');
 var url = require('url');
 
 var data = {results: []};
+
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -43,35 +43,34 @@ var requestHandler = function(request, response) {
 
   // GET Request Handlers 
   if (url.parse(request.url).pathname === '/classes/messages' && request.method === 'GET') { 
- 
-
     // On success send a stringified data 
-    response.writeHead(statusCode ,{'Content-Type': 'application/json'});
+    response.writeHead(200 ,{'Content-Type': 'application/json'});
+    console.log(data);
     response.end(JSON.stringify(data));
+    
   } else if (url.parse(request.url).pathname === '/classes/messages' && request.method === 'POST'){
-    console.log('PATHH' + url.parse(request.url).pathname);
       let body = '';
       request.on('error',(err)=> {
-        console.log("Big ol Error");
-      })
-      request.on('data', (chunk) => { 
+        console.log("Big ol Error", err);
+      }).on('data', (chunk) => { 
         body = body.concat(chunk);
-        console.log('THIS IS OUR CHUNK FROM POST' + chunk)
-        console.log('THIS IS OUR BODY!!!!!!!!!:' + body);
-
         
-      })
-      request.on('end', () => { 
+        
+        console.log('THIS IS OUR CHUNK FROM POST' + chunk)
+        
+        
+      }).on('end', () => { 
+        console.log('THIS IS OUR BODY!!!!!!!!!:' + body); 
+        data.results.push(body);
+        console.log("DATADATA: " + JSON.stringify(data));
         response.writeHead(201, {'Content-Type': 'application/json'});
-        response.end(JSON.stringify(body));
-
+        response.end(); //JSON.stringify(body)
       });
      
     } else {
 
-
-    response.writeHead(404, {'Content-Type': 'application/json'});
-    response.end('Hello, World!');
+      response.writeHead(404, {'Content-Type': 'application/json'});
+      response.end('Hello, World!');
     }
     
 };
