@@ -16,6 +16,14 @@ var url = require('url');
 
 var data = {results: []};
 
+var defaultCorsHeaders = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'access-control-allow-headers': 'content-type, accept',
+  'access-control-max-age': 10 // Seconds.
+};
+var id = 1; 
+
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -37,42 +45,53 @@ var requestHandler = function(request, response) {
   
   var statusCode = 200;
   var headers = defaultCorsHeaders;
-  headers['Content-Type'] = 'text/plain';
+  headers['Content-Type'] = 'application/json';
 
   // response.writeHead(statusCode, headers);
 
   // GET Request Handlers 
   if (url.parse(request.url).pathname === '/classes/messages' && request.method === 'GET') { 
     // On success send a stringified data 
-    response.writeHead(200 ,{'Content-Type': 'application/json'});
+    response.writeHead(200, {'Content-Type': 'application/json'});
     console.log(data);
     response.end(JSON.stringify(data));
     
-  } else if (url.parse(request.url).pathname === '/classes/messages' && request.method === 'POST'){
-      let body = '';
-      request.on('error',(err)=> {
-        console.log("Big ol Error", err);
-      }).on('data', (chunk) => { 
-        body = body.concat(chunk);
-        body = JSON.parse(body); 
-        
-        
-        console.log('THIS IS OUR CHUNK FROM POST' + chunk)
-        
-        
-      }).on('end', () => { 
-        console.log('THIS IS OUR BODY!!!!!!!!!:' + body); 
-        data.results.push(body);
-        console.log("DATADATA: " + JSON.stringify(data));
-        response.writeHead(201, {'Content-Type': 'application/json'});
-        response.end(); //JSON.stringify(body)
-      });
-     
-    } else {
+  } else if (url.parse(request.url).pathname === '/classes/messages' && request.method === 'POST') {
+    let body = [];
+    request.on('error', (err)=> {
+      console.log('Big ol Error', err);
+    }).on('data', (chunk) => { 
+      body.push(chunk);
+      // console.log('THIS IS OUR CHUNK FROM POST' + chunk);   
+    }).on('end', () => { 
+      
+      body = Buffer.concat(body);
+      body = body.toString('utf-8');
 
-      response.writeHead(404, {'Content-Type': 'application/json'});
-      response.end('Hello, World!');
-    }
+
+      console.log('hello');
+      console.log("############: "+body+"###########");
+      var messagePost = JSON.parse(body); 
+      console.log('MESSAGEPOST: '+messagePost);
+      
+      messagePost.objectId = id; 
+      console.log("THIS IS OBJECTID: "+JSON.stringify(messagePost));
+      id++; 
+      data.results.push(messagePost);
+      console.log('DATADATADATA: ' + JSON.stringify(data.results));
+      
+      
+      
+      // console.log('DATADATA: ' + JSON.stringify(data));
+      response.writeHead(201, {'Content-Type': 'application/json'});
+      response.end(JSON.stringify(data.results)); //JSON.stringify(body)
+    });
+     
+  } else {
+
+    response.writeHead(404, {'Content-Type': 'application/json'});
+    response.end('Hello, World!');
+  }
     
 };
 
@@ -85,12 +104,7 @@ var requestHandler = function(request, response) {
 //
 // Another way to get around this restriction is to serve your chat
 // client from this domain by setting up static file serving.
-var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
-};
+
 
 module.exports.requestHandler = requestHandler; 
 
