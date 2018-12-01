@@ -12,15 +12,16 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 
+
 var url = require('url');
 
-var data = {results: []};
+var data = {results: [{username: 'Pikachu', text: 'PIKA PIKA PIKA', objectId: 0}]};
 
 var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'content-type, X-Parse-Application-Id, X-Parse-REST-API-Key, accept',
+  'Access-Control-Max-Age': 10 // Seconds.
 };
 var id = 1; 
 
@@ -50,9 +51,9 @@ var requestHandler = function(request, response) {
   // response.writeHead(statusCode, headers);
 
   // GET Request Handlers 
-  if (url.parse(request.url).pathname === '/classes/messages' && request.method === 'GET') { 
+  if ((url.parse(request.url).pathname === '/classes/messages' || url.parse(request.url).pathname === '/') && request.method === 'GET') { 
     // On success send a stringified data 
-    response.writeHead(200, {'Content-Type': 'application/json'});
+    response.writeHead(200, headers);
     console.log(data);
     response.end(JSON.stringify(data));
     
@@ -83,15 +84,19 @@ var requestHandler = function(request, response) {
       
       
       // console.log('DATADATA: ' + JSON.stringify(data));
-      response.writeHead(201, {'Content-Type': 'application/json'});
+      response.writeHead(201, headers);
       response.end(JSON.stringify(data.results)); //JSON.stringify(body)
     });
      
+  } else if (request.method === 'OPTIONS') { 
+    response.writeHead(200, headers);
+    response.end('Hello, World!');
+
   } else {
 
-    response.writeHead(404, {'Content-Type': 'application/json'});
-    response.end('Hello, World!');
-  }
+    response.writeHead(404, headers);
+    response.end('Better luck next time!');
+  } 
     
 };
 
