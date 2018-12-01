@@ -54,6 +54,7 @@ var requestHandler = function(request, response) {
         console.log("Big ol Error", err);
       }).on('data', (chunk) => { 
         body = body.concat(chunk);
+        body = JSON.parse(body); 
         
         
         console.log('THIS IS OUR CHUNK FROM POST' + chunk)
